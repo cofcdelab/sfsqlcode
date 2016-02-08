@@ -107,8 +107,9 @@ where paymentid > 0
 group by paymentid,timailinglist,ptdescr,rcbshiftdate, rcbcachinout
 
 
+drop table gettysburgstaging..users
 
-select user_name + '@gettysburgfoundation' guideid,first_name, last_name, cltemail email into gettysburgstaging..users
+select user_name + '@gettysburgfoundation' guideid,first_name, last_name, cltemail email,pecode externalid into gettysburgstaging..users
 from SugarGettysburg..users u 
 inner join pegettysburg..ASC_SoapSyncCrossReference on u.id = sugarid and sugarmodule = 'Users'
 inner join pegettysburg..Guiders on gdrCode = pecode
