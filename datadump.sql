@@ -85,12 +85,10 @@ t1.timailinglist = t2.timailinglist and t1.ptdescr = t2.ptdescr and t1.rcbshiftd
 drop table GettysburgStaging..tickets
 
 select minticode tickid, tipricetype pricetypeid, tiFullPrice price,evEventDate,shcode Activity,tilcode userid,tiMailingList contactid,count(*) qty, 
-case when tistatus = 9 then 'Return' else 'Sale' end status, user_name + '@gettysburgfoundation' guideid, fees,case when paymentid = 0 then null else paymentid end paymentid, max(titransactnum) last_transact_no 
+case when tistatus = 9 then 'Return' else 'Sale' end status, guideid, fees,case when paymentid = 0 then null else paymentid end paymentid, max(titransactnum) last_transact_no 
 into GettysburgStaging..tickets
 from temptickets
-left outer join ASC_SoapSyncCrossReference on pecode = guideid and sugarmodule = 'Users'
-left outer join SugarGettysburg..users u on u.id = sugarid
-group by minticode, tipricetype, tiFullPrice,evEventDate,shcode,tilcode,tiMailingList,tistatus,user_name, fees,paymentid 
+group by minticode, tipricetype, tiFullPrice,evEventDate,shcode,tilcode,tiMailingList,tistatus,guideid, fees,paymentid 
 
 drop table gettysburgstaging..payments
 select paymentid, 
