@@ -9,7 +9,7 @@ inner join shows on evshow = shcode
 inner join shifts on tishift = sfcode and sfActionType = 0
 inner join till on sftill = tilCode
 left outer join clients on timailinglist = cltcode
-where eveventdate between '2014-10-01' and '2015-09-30 23:59')
+where eveventdate between '2014-10-01' and '2015-01-31 23:59')
 
 /*
 -- This query generates the data for the users table
@@ -20,7 +20,7 @@ inner join shows on evshow = shcode
 inner join shifts on tishift = sfcode and sfActionType = 0
 inner join till on sftill = tilCode
 left outer join clients on timailinglist = cltcode
-where eveventdate between '2014-10-01' and '2015-09-30 23:59')
+where eveventdate between '2014-10-01' and '2015-01-31 23:59')
 
 -- This query generates the data for the guides table
 select gdrcode+1000 guideid,gdrfirstname + ' ' + gdrlastname guidename from guiders
@@ -35,7 +35,7 @@ inner join shows on evshow = shcode
 inner join shifts on tishift = sfcode and sfActionType = 0
 inner join till on sftill = tilCode
 left outer join clients on timailinglist = cltcode
-where eveventdate between '2014-10-01' and '2015-09-30 23:59')
+where eveventdate between '2014-10-01' and '2015-01-31 23:59')
 
 
 drop table gettysburgstaging..activities 
@@ -47,7 +47,7 @@ inner join shows on evshow = shcode
 inner join shifts on tishift = sfcode and sfActionType = 0
 inner join till on sftill = tilCode
 left outer join clients on timailinglist = cltcode
-where eveventdate between '2014-10-01' and '2015-09-30 23:59')
+where eveventdate between '2014-10-01' and '2015-01-31 23:59')
 
 drop table temptickets
 select ticode,tipricetype,tifullprice,eveventdate, shcode, tilcode, timailinglist,titransactnum, 
@@ -63,7 +63,7 @@ inner join shifts on tishift = sfcode and sfActionType = 0
 inner join till on sftill = tilCode
 left outer join clients on timailinglist = cltcode
 left outer join get_orderguides on gogordernumber = tiorder and gogticketid = ticode
-where eveventdate between '2014-10-01' and '2015-09-30 23:59'
+where eveventdate between '2014-10-01' and '2015-01-31 23:59'
 
 update t1
 set minticode = minticode2
@@ -106,13 +106,14 @@ group by paymentid,timailinglist,ptdescr,rcbshiftdate, rcbcachinout
 
 
 drop table gettysburgstaging..users
+go
 
 select user_name + '@gettysburgfoundation' guideid,first_name, last_name, cltemail email,pecode externalid into gettysburgstaging..users
 from SugarGettysburg..users u 
 inner join pegettysburg..ASC_SoapSyncCrossReference on u.id = sugarid and sugarmodule = 'Users'
 inner join pegettysburg..Guiders on gdrCode = pecode
 INNER JOIN pegettysburg..Clients ON gdrContactNoInRelTable = cltCode
-where user_name + '@gettysburgfoundation' in (select guideid from GettysburgStaging..tickets)
+where pecode in (select guideid from GettysburgStaging..tickets)
 /* This is the old versions
 -- This query generates the data for the tickets table
 select min(ticode) tickid, tipricetype pricetypeid, tiFullPrice price,evEventDate,shcode Activity,tilcode userid,tiMailingList contactid,count(*) qty,
@@ -125,7 +126,7 @@ inner join shifts on tishift = sfcode and sfActionType = 0
 inner join till on sftill = tilCode
 left outer join clients on timailinglist = cltcode
 left outer join get_orderguides on gogordernumber = tiorder and gogticketid = ticode
-where eveventdate between '2014-10-01' and '2015-09-30 23:59'
+where eveventdate between '2014-10-01' and '2015-01-31 23:59'
 group by tiFullPrice,evEventDate,shcode,tilcode,tiMailingList,tiStatus,tipricetype,gogguidenumber
 
 -- This query generates the data for the payments table
@@ -147,8 +148,8 @@ convert(varchar(5),eveventdate,8) starttime,convert(varchar(5),dateadd(n,shlongm
 from events inner join shows on evshow = shcode
 group by evshow,convert(varchar(5),eveventdate,8),convert(varchar(5),dateadd(n,shlongminutes,eveventdate),8)
 
-
-select min(evcode) activityscheduleid,pctcode pricetypeid,min(pdcalculatedprice) price
+*/
+select min(evcode) activityscheduleid,pctcode pricetypeid,min(pdcalculatedprice) price into gettysburgstaging..activitypriceschedule
 FROM PriceType 
 INNER JOIN PriceDiscount ON PriceType.pctCode = PriceDiscount.pdPriceType 
 INNER JOIN PriceList ON PriceDiscount.pdPriceList = PriceList.prlCode
@@ -161,6 +162,5 @@ inner join shows on evshow = shcode
 inner join shifts on tishift = sfcode and sfActionType = 0
 inner join till on sftill = tilCode
 left outer join clients on timailinglist = cltcode
-where eveventdate between '2014-10-01' and '2015-09-30 23:59')
+where eveventdate between '2014-10-01' and '2015-01-31 23:59')
 group by evshow,convert(varchar(5),eveventdate,8),convert(varchar(5),dateadd(n,shlongminutes,eveventdate),8),pctcode 
-*/
