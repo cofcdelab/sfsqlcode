@@ -197,3 +197,14 @@ inner join till on sftill = tilCode
 left outer join clients on timailinglist = cltcode
 where eveventdate between '2014-10-01' and '2014-10-01 23:59')
 
+IF EXISTS (SELECT * FROM gettysburgstagingday.INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'activityschedule')
+  drop table gettysburgstagingday..activityschedule
+go
+
+select min(evcode) id,evshow activityid,'True' sundayavail, 'True' mondayavail, 'True' tuesdayavail, 'True' wednesdayavail, 'True' thursdayavail,
+'True' fridayavail, 'True' saturdayavail,
+min(eveventdate) startdate,max(eveventdate) enddate, 
+convert(varchar(5),eveventdate,8) starttime,convert(varchar(5),dateadd(n,shlongminutes,eveventdate),8) finishtime into gettysburgstagingday..activityschedule
+from events inner join shows on evshow = shcode
+where eveventdate between '2014-10-01' and '2014-10-01 23:59'
+group by evshow,convert(varchar(5),eveventdate,8),convert(varchar(5),dateadd(n,shlongminutes,eveventdate),8)
