@@ -14,7 +14,7 @@ inner join shifts on tishift = sfcode and sfActionType = 0
 inner join till on sftill = tilCode
 left outer join clients on timailinglist = cltcode
 left outer join get_orderguides on gogordernumber = tiorder and gogticketid = ticode
-where eveventdate between @startdate and @startdate
+where eveventdate between @startdate and @enddate
 
 update t1
 set minticode = minticode2

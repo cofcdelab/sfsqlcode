@@ -208,3 +208,23 @@ convert(varchar(5),eveventdate,8) starttime,convert(varchar(5),dateadd(n,shlongm
 from events inner join shows on evshow = shcode
 where eveventdate between '2014-10-01' and '2014-10-01 23:59'
 group by evshow,convert(varchar(5),eveventdate,8),convert(varchar(5),dateadd(n,shlongminutes,eveventdate),8)
+
+IF EXISTS (SELECT * FROM gettysburgstagingday.INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'activitypriceschedule')
+drop table gettysburgstagingday..activitypriceschedule
+select min(evcode) activityscheduleid,pctcode pricetypeid,min(pdcalculatedprice) price into gettysburgstagingday..activitypriceschedule
+FROM PriceType 
+INNER JOIN PriceDiscount ON PriceType.pctCode = PriceDiscount.pdPriceType 
+INNER JOIN PriceList ON PriceDiscount.pdPriceList = PriceList.prlCode
+inner join events on evPricelist = PriceList.prlCode and eveventdate between '2014-10-01' and '2014-10-01 23:59'
+inner join shows on evshow = shcode
+where pctcode in
+(select distinct tipricetype from tickets 
+inner join events on tievent = evcode
+inner join shows on evshow = shcode
+inner join shifts on tishift = sfcode and sfActionType = 0
+inner join till on sftill = tilCode
+left outer join clients on timailinglist = cltcode
+where eveventdate between '2014-10-01' and '2014-10-01 23:59')
+
+group by evshow,convert(varchar(5),eveventdate,8),convert(varchar(5),dateadd(n,shlongminutes,eveventdate),8),pctcode 
+
