@@ -1,3 +1,8 @@
+declare @startdate datetime 
+SET @startdate = '2014-10-01'
+declare @enddate datetime 
+SET @enddate = '2014-10-01 23:59'
+
 IF EXISTS (SELECT * FROM gettysburgstagingday.INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'contacts')
 	drop table gettysburgstagingday..contacts
 
@@ -9,7 +14,7 @@ inner join shows on evshow = shcode
 inner join shifts on tishift = sfcode and sfActionType = 0
 inner join till on sftill = tilCode
 left outer join clients on timailinglist = cltcode
-where eveventdate between '2014-10-01' and '2014-10-01 23:59')
+where eveventdate between @startdate and @enddate)
 
 /*
 -- This query generates the data for the users table
@@ -20,7 +25,7 @@ inner join shows on evshow = shcode
 inner join shifts on tishift = sfcode and sfActionType = 0
 inner join till on sftill = tilCode
 left outer join clients on timailinglist = cltcode
-where eveventdate between '2014-10-01' and '2014-10-01 23:59')
+where eveventdate between @startdate and @enddate)
 
 -- This query generates the data for the guides table
 select gdrcode+1000 guideid,gdrfirstname + ' ' + gdrlastname guidename from guiders
@@ -36,7 +41,7 @@ inner join shows on evshow = shcode
 inner join shifts on tishift = sfcode and sfActionType = 0
 inner join till on sftill = tilCode
 left outer join clients on timailinglist = cltcode
-where eveventdate between '2014-10-01' and '2014-10-01 23:59')
+where eveventdate between @startdate and @enddate)
 
 
 IF EXISTS (SELECT * FROM gettysburgstagingday.INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'activities')
@@ -49,7 +54,7 @@ inner join shows on evshow = shcode
 inner join shifts on tishift = sfcode and sfActionType = 0
 inner join till on sftill = tilCode
 left outer join clients on timailinglist = cltcode
-where eveventdate between '2014-10-01' and '2014-10-01 23:59')
+where eveventdate between @startdate and @enddate)
 
 drop table temptickets2
 select ticode,tipricetype,tifullprice,eveventdate, shcode, tilcode, timailinglist,titransactnum, 
@@ -65,7 +70,7 @@ inner join shifts on tishift = sfcode and sfActionType = 0
 inner join till on sftill = tilCode
 left outer join clients on timailinglist = cltcode
 left outer join get_orderguides on gogordernumber = tiorder and gogticketid = ticode
-where eveventdate between '2014-10-01' and '2014-10-01 23:59'
+where eveventdate between @startdate and @enddate
 
 update t1
 set minticode = minticode2
@@ -112,7 +117,7 @@ group by paymentid,timailinglist,ptdescr,rcbshiftdate, rcbcachinout
 
 IF EXISTS (SELECT * FROM gettysburgstagingday.INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'users')
 drop table gettysburgstagingday..users
-go
+
 
 select user_name + '@gettysburgfoundation' guideid,first_name, last_name, cltemail email,pecode externalid into gettysburgstagingday..users
 from SugarGettysburg..users u 
@@ -132,7 +137,7 @@ inner join shifts on tishift = sfcode and sfActionType = 0
 inner join till on sftill = tilCode
 left outer join clients on timailinglist = cltcode
 left outer join get_orderguides on gogordernumber = tiorder and gogticketid = ticode
-where eveventdate between '2014-10-01' and '2014-10-01 23:59'
+where eveventdate between @startdate and @enddate
 group by tiFullPrice,evEventDate,shcode,tilcode,tiMailingList,tiStatus,tipricetype,gogguidenumber
 
 -- This query generates the data for the payments table
@@ -170,13 +175,13 @@ inner join shows on evshow = shcode
 inner join shifts on tishift = sfcode and sfActionType = 0
 inner join till on sftill = tilCode
 left outer join clients on timailinglist = cltcode
-where eveventdate between '2014-10-01' and '2014-10-01 23:59')
+where eveventdate between @startdate and @enddate)
 group by evshow,convert(varchar(5),eveventdate,8),convert(varchar(5),dateadd(n,shlongminutes,eveventdate),8),pctcode 
 
 
 IF EXISTS (SELECT * FROM gettysburgstagingday.INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'users')
 drop table gettysburgstagingday..users
-go
+
 
 -- This query generates the data for the users table
 
@@ -196,18 +201,18 @@ inner join shows on evshow = shcode
 inner join shifts on tishift = sfcode and sfActionType = 0
 inner join till on sftill = tilCode
 left outer join clients on timailinglist = cltcode
-where eveventdate between '2014-10-01' and '2014-10-01 23:59')
+where eveventdate between @startdate and @enddate)
 
 IF EXISTS (SELECT * FROM gettysburgstagingday.INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'activityschedule')
   drop table gettysburgstagingday..activityschedule
-go
+
 
 select min(evcode) id,evshow activityid,'True' sundayavail, 'True' mondayavail, 'True' tuesdayavail, 'True' wednesdayavail, 'True' thursdayavail,
 'True' fridayavail, 'True' saturdayavail,
 min(eveventdate) startdate,max(eveventdate) enddate, 
 convert(varchar(5),eveventdate,8) starttime,convert(varchar(5),dateadd(n,shlongminutes,eveventdate),8) finishtime into gettysburgstagingday..activityschedule
 from events inner join shows on evshow = shcode
-where eveventdate between '2014-10-01' and '2014-10-01 23:59'
+where eveventdate between @startdate and @enddate
 group by evshow,convert(varchar(5),eveventdate,8),convert(varchar(5),dateadd(n,shlongminutes,eveventdate),8)
 
 IF EXISTS (SELECT * FROM gettysburgstagingday.INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'activitypriceschedule')
@@ -216,7 +221,7 @@ select min(evcode) activityscheduleid,pctcode pricetypeid,min(pdcalculatedprice)
 FROM PriceType 
 INNER JOIN PriceDiscount ON PriceType.pctCode = PriceDiscount.pdPriceType 
 INNER JOIN PriceList ON PriceDiscount.pdPriceList = PriceList.prlCode
-inner join events on evPricelist = PriceList.prlCode and eveventdate between '2014-10-01' and '2014-10-01 23:59'
+inner join events on evPricelist = PriceList.prlCode and eveventdate between @startdate and @enddate
 inner join shows on evshow = shcode
 where pctcode in
 (select distinct tipricetype from tickets 
@@ -225,7 +230,7 @@ inner join shows on evshow = shcode
 inner join shifts on tishift = sfcode and sfActionType = 0
 inner join till on sftill = tilCode
 left outer join clients on timailinglist = cltcode
-where eveventdate between '2014-10-01' and '2014-10-01 23:59')
+where eveventdate between @startdate and @enddate)
 
 group by evshow,convert(varchar(5),eveventdate,8),convert(varchar(5),dateadd(n,shlongminutes,eveventdate),8),pctcode 
 
