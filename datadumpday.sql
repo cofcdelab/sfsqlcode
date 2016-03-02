@@ -89,7 +89,7 @@ IF EXISTS (SELECT * FROM gettysburgstagingday.INFORMATION_SCHEMA.TABLES WHERE TA
 drop table gettysburgstagingday..tickets
 
 select minticode tickid, tipricetype pricetypeid, tiFullPrice price,evEventDate,shcode Activity,tilcode userid,tiMailingList contactid,count(*) qty, 
-case when tistatus = 9 then 'Return' else 'Sale' end status, guideid, fees,case when paymentid = 0 then null else paymentid end paymentid, max(titransactnum) last_transact_no 
+case when tistatus = 9 then 'Return' else 'Sale' end status, guideid+1000 guideid, fees,case when paymentid = 0 then null else paymentid end paymentid, max(titransactnum) last_transact_no 
 into gettysburgstagingday..tickets
 from temptickets2
 group by minticode, tipricetype, tiFullPrice,evEventDate,shcode,tilcode,tiMailingList,tistatus,guideid, fees,paymentid 
@@ -101,7 +101,7 @@ ptdescr type, rcbshiftdate trandate, case when rcbcachinout = 1 then 'Refund' el
 max(rccCreditNum) lastCardNum, max(dbo.asc_xmlgetattribute('card_name',rccparamsdata)) lastCardName,
 (select sum(rcbpayamount) from recieptbase r 
 where rcbtransactnum in
-(select t2.titransactnum from temptickets t2  
+(select t2.titransactnum from temptickets2 t2  
 where t2.paymentid = t.paymentid)) amount into gettysburgstagingday..payments
 from 
 temptickets2 t
@@ -156,6 +156,7 @@ group by evshow,convert(varchar(5),eveventdate,8),convert(varchar(5),dateadd(n,s
 
 */
 IF EXISTS (SELECT * FROM gettysburgstagingday.INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'activitypriceschedule')
+	drop table gettysburgstagingday..activitypriceschedule
 select min(evcode) activityscheduleid,pctcode pricetypeid,min(pdcalculatedprice) price into gettysburgstagingday..activitypriceschedule
 FROM PriceType 
 INNER JOIN PriceDiscount ON PriceType.pctCode = PriceDiscount.pdPriceType 
