@@ -57,7 +57,7 @@ left outer join clients on timailinglist = cltcode
 where eveventdate between @startdate and @enddate)
 
 drop table temptickets2
-select ticode,tipricetype,tifullprice,eveventdate, shcode, tilcode, timailinglist,titransactnum, 
+select ticode,tipricetype,tifullprice,eveventdate, evcode, shcode, tilcode, timailinglist,titransactnum, 
 (select top 1 ptdescr from recieptbase inner join paytype on rcbPayType = ptcode where rcbtransactnum = titransactnum) ptdescr ,
 (select top 1 rcbshiftdate from recieptbase where rcbtransactnum = titransactnum) rcbshiftdate,
 (select top 1 rcbcachinout from recieptbase where rcbtransactnum = titransactnum) rcbcachinout, 
@@ -75,10 +75,10 @@ where eveventdate between @startdate and @enddate
 update t1
 set minticode = minticode2
 from 
-temptickets2 t1 inner join (select min(ticode) minticode2, tipricetype,tifullprice,eveventdate, shcode, tilcode, timailinglist,tistatus,guideid,ptdescr,rcbshiftdate
-from temptickets2 group by tipricetype,tifullprice,eveventdate, shcode, tilcode, timailinglist,tistatus,guideid,ptdescr,rcbshiftdate) t2 on
+temptickets2 t1 inner join (select min(ticode) minticode2, tipricetype,tifullprice,eveventdate, evcode, tilcode, timailinglist,tistatus,guideid,ptdescr,rcbshiftdate
+from temptickets2 group by tipricetype,tifullprice,eveventdate, evcode, tilcode, timailinglist,tistatus,guideid,ptdescr,rcbshiftdate) t2 on
 t1.tipricetype = t2.tipricetype and t1.tifullprice = t2.tifullprice and t1.eveventdate = t2.eveventdate and
-t1.shcode = t2.shcode and t1.tilcode = t2.tilcode and t1.timailinglist = t2.timailinglist and t1.tistatus = t2.tistatus and isnull(t1.guideid,0) = isnull(t2.guideid,0)
+t1.evcode = t2.evcode and t1.tilcode = t2.tilcode and t1.timailinglist = t2.timailinglist and t1.tistatus = t2.tistatus and isnull(t1.guideid,0) = isnull(t2.guideid,0)
 and isnull(t1.ptdescr,'') = isnull(t2.ptdescr,'') and isnull(t1.rcbshiftdate,'2000-01-01') = isnull(t2.rcbshiftdate,'2000-01-01')
 
 update t1
