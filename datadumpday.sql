@@ -206,7 +206,6 @@ where eveventdate between @startdate and @enddate)
 IF EXISTS (SELECT * FROM gettysburgstagingday.INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'activityschedule')
   drop table gettysburgstagingday..activityschedule
 
-
 select min(evcode) id,evshow activityid,'True' sundayavail, 'True' mondayavail, 'True' tuesdayavail, 'True' wednesdayavail, 'True' thursdayavail,
 'True' fridayavail, 'True' saturdayavail,
 min(eveventdate) startdate,max(eveventdate) enddate, 
@@ -231,6 +230,12 @@ inner join shifts on tishift = sfcode and sfActionType = 0
 inner join till on sftill = tilCode
 left outer join clients on timailinglist = cltcode
 where eveventdate between @startdate and @enddate)
-
 group by evshow,convert(varchar(5),eveventdate,8),convert(varchar(5),dateadd(n,shlongminutes,eveventdate),8),pctcode 
 
+
+IF EXISTS (SELECT * FROM gettysburgstagingday.INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'lookuptimes')
+  drop table gettysburgstagingday..lookuptimes
+select starttime timevalue,datepart(hh,starttime) *60 + datepart(mi,starttime) min into gettysburgstagingday..lookuptimes
+from gettysburgstagingday..activityschedule 
+union 
+select finishtime, datepart(hh,finishtime) *60 + datepart(mi,finishtime) from gettysburgstagingday..activityschedule

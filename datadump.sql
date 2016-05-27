@@ -146,3 +146,9 @@ from events inner join shows on evshow = shcode
 where eveventdate between '2014-10-01' and '2015-01-31 23:59'
 group by evshow,convert(varchar(5),eveventdate,8),convert(varchar(5),dateadd(n,shlongminutes,eveventdate),8)
 
+IF EXISTS (SELECT * FROM gettysburgstaging.INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'lookuptimes')
+  drop table gettysburgstaging..lookuptimes
+select starttime timevalue,datepart(hh,starttime) *60 + datepart(mi,starttime) min into gettysburgstaging..lookuptimes
+from gettysburgstaging..activityschedule 
+union 
+select finishtime, datepart(hh,finishtime) *60 + datepart(mi,finishtime) from gettysburgstaging..activityschedule
