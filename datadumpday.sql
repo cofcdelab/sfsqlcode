@@ -56,7 +56,8 @@ inner join till on sftill = tilCode
 left outer join clients on timailinglist = cltcode
 where eveventdate between @startdate and @enddate)
 
-drop table temptickets2
+IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'temptickets2')
+  drop table temptickets2
 select ticode,tipricetype,tifullprice,eveventdate, evcode, shcode, tilcode, timailinglist,titransactnum, 
 (select top 1 ptdescr from recieptbase inner join paytype on rcbPayType = ptcode where rcbtransactnum = titransactnum) ptdescr ,
 (select top 1 rcbshiftdate from recieptbase where rcbtransactnum = titransactnum) rcbshiftdate,
@@ -93,7 +94,7 @@ t1.timailinglist = t2.timailinglist and t1.ptdescr = t2.ptdescr and t1.rcbshiftd
 IF EXISTS (SELECT * FROM gettysburgstagingday.INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'tickets')
 drop table gettysburgstagingday..tickets
 
-select minticode tickid, tipricetype pricetypeid, tiFullPrice price,evEventDate,shcode Activity,tilcode userid,tiMailingList contactid,count(*) qty, 
+select minticode tickid, min(evcode) activityscheduleid, tipricetype pricetypeid, tiFullPrice price,evEventDate,shcode Activity,tilcode userid,tiMailingList contactid,count(*) qty, 
 case when tistatus = 9 then 'Return' else 'Sale' end status, guideid+1000 guideid, fees,case when paymentid = 0 then null else paymentid end paymentid, max(titransactnum) last_transact_no 
 into gettysburgstagingday..tickets
 from temptickets2
