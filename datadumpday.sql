@@ -116,16 +116,9 @@ where paymentid > 0
 group by paymentid,timailinglist,ptdescr,rcbshiftdate, rcbcachinout
 
 
-IF EXISTS (SELECT * FROM gettysburgstagingday.INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'users')
-drop table gettysburgstagingday..users
 
 
-select user_name + '@gettysburgfoundation' guideid,first_name, last_name, cltemail email,pecode externalid into gettysburgstagingday..users
-from SugarGettysburg..users u 
-inner join pegettysburg2..ASC_SoapSyncCrossReference on u.id = sugarid and sugarmodule = 'Users'
-inner join pegettysburg2..Guiders on gdrCode = pecode
-INNER JOIN pegettysburg2..Clients ON gdrContactNoInRelTable = cltCode
-where pecode in (select guideid from gettysburgstagingday..tickets)
+
 /* This is the old versions
 -- This query generates the data for the tickets table
 select min(ticode) tickid, tipricetype pricetypeid, tiFullPrice price,evEventDate,shcode Activity,tilcode userid,tiMailingList contactid,count(*) qty,
@@ -184,18 +177,20 @@ IF EXISTS (SELECT * FROM gettysburgstagingday.INFORMATION_SCHEMA.TABLES WHERE TA
 drop table gettysburgstagingday..users
 
 
--- This query generates the data for the users table
-
-select user_name + '@gettysburgfoundation' username,first_name, last_name, cltemail email,pecode + 1000 externalid into gettysburgstagingday..users
+select user_name + '@gettysburgfoundation.com.cofc' username, first_name, last_name, cltemail + '.test' email,pecode externalid, last_name + '.cofc.test' communityNickname, 
+'America/Los_Angeles' TimeZoneSidKey, 'en_US' LocaleSidKey, 'ISO-8859-1' EmailEncodingKey, 'en_US' LanguageLocaleKey, last_name + '.cofc.test' Alias, '00e61000000RCxM' ProfileId
+into gettysburgstagingday..users
 from SugarGettysburg..users u 
 inner join pegettysburg2..ASC_SoapSyncCrossReference on u.id = sugarid and sugarmodule = 'Users'
 inner join pegettysburg2..Guiders on gdrCode = pecode
 INNER JOIN pegettysburg2..Clients ON gdrContactNoInRelTable = cltCode
-where pecode in (select guideid -1000 guideid from GettysburgStagingDay..tickets)
+where pecode in (select guideid - 1000 from gettysburgstagingday..tickets)
 
-insert into gettysburgstagingday..users (username,first_name, last_name, email,externalid)
 
-select replace(tildescr,' ','_') + 'peuser@gettysburgfoundation','',replace(tildescr,' ','_'),'',tilcode externalid from till where tilcode in
+insert into gettysburgstagingday..users (username,first_name, last_name, email,externalid,communityNickname, TimeZoneSidKey, LocaleSidKey, EmailEncodingKey, LanguageLocaleKey, Alias, ProfileId)
+select replace(tildescr,' ','_') + '@gettysburgfoundation.com.cofc','',replace(tildescr,' ','_'),replace(tildescr,' ','_') + '@gettysburgfoundation.com.cofc',tilcode externalid,
+replace(tildescr,' ','_') + '.cofc.test', 'America/Los_Angeles', 'en_US', 'ISO-8859-1', 'en_US', replace(tildescr,' ','_') + '.cofc.test', '00e61000000RCxM'
+from till where tilcode in
 (select distinct tilcode from tickets 
 inner join events on tievent = evcode
 inner join shows on evshow = shcode
