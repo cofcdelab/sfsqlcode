@@ -2,6 +2,9 @@ declare @startdate datetime
 SET @startdate = '2014-10-01'
 declare @enddate datetime 
 SET @enddate = '2014-10-01 23:59'
+declare @emailsuffix varchar(255)
+SET @emailsuffix = '@gettysburgfoundation.com.cofc'
+--SET @enddate = '2016-04-01 23:59'
 
 IF EXISTS (SELECT * FROM gettysburgstagingday.INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'contacts')
 	drop table gettysburgstagingday..contacts
@@ -56,6 +59,20 @@ inner join till on sftill = tilCode
 left outer join clients on timailinglist = cltcode
 where eveventdate between @startdate and @enddate)
 
+IF EXISTS (SELECT * FROM gettysburgstagingday.INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'activityschedule')
+  drop table gettysburgstagingday..activityschedule
+
+select min(evcode) id,evshow activityid,'True' sundayavail, 'True' mondayavail, 'True' tuesdayavail, 'True' wednesdayavail, 'True' thursdayavail,
+'True' fridayavail, 'True' saturdayavail,
+min(eveventdate) startdate,max(eveventdate) enddate, 
+convert(varchar(5),eveventdate,8) starttime,convert(varchar(5),dateadd(n,shlongminutes,eveventdate),8) finishtime into gettysburgstagingday..activityschedule
+from events inner join shows on evshow = shcode
+where eveventdate between @startdate and @enddate
+and evshow in (select activityid from gettysburgstagingday..activities)
+group by evshow,convert(varchar(5),eveventdate,8),convert(varchar(5),dateadd(n,shlongminutes,eveventdate),8)
+
+
+
 IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'temptickets2')
   drop table temptickets2
 select ticode,tipricetype,tifullprice,eveventdate, evcode, shcode, tilcode, timailinglist,titransactnum, 
@@ -94,7 +111,8 @@ t1.timailinglist = t2.timailinglist and t1.ptdescr = t2.ptdescr and t1.rcbshiftd
 IF EXISTS (SELECT * FROM gettysburgstagingday.INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'tickets')
 drop table gettysburgstagingday..tickets
 
-select minticode tickid, min(evcode) activityscheduleid, tipricetype pricetypeid, tiFullPrice price,evEventDate,shcode Activity,tilcode userid,tiMailingList contactid,count(*) qty, 
+select minticode tickid, 
+(select top 1 id from gettysburgstagingday..activityschedule where eveventdate between startdate and enddate and shcode = activityid) activityscheduleid, tipricetype pricetypeid, tiFullPrice price,evEventDate,shcode Activity,tilcode userid,tiMailingList contactid,count(*) qty, 
 case when tistatus = 9 then 'Return' else 'Sale' end status, guideid+1000 guideid, fees,case when paymentid = 0 then null else paymentid end paymentid, max(titransactnum) last_transact_no 
 into gettysburgstagingday..tickets
 from temptickets2
@@ -116,44 +134,6 @@ where paymentid > 0
 group by paymentid,timailinglist,ptdescr,rcbshiftdate, rcbcachinout
 
 
-
-
-
-/* This is the old versions
--- This query generates the data for the tickets table
-select min(ticode) tickid, tipricetype pricetypeid, tiFullPrice price,evEventDate,shcode Activity,tilcode userid,tiMailingList contactid,count(*) qty,
-case when tistatus = 9 then 'Return' else 'Sale' end status, gogguidenumber+ 1000 guideid,
-(select min(rcbcode) from RecieptBase where rcbTransactNum = min(tiTransactNum)) paymentid 
- from tickets 
-inner join events on tievent = evcode
-inner join shows on evshow = shcode
-inner join shifts on tishift = sfcode and sfActionType = 0
-inner join till on sftill = tilCode
-left outer join clients on timailinglist = cltcode
-left outer join get_orderguides on gogordernumber = tiorder and gogticketid = ticode
-where eveventdate between @startdate and @enddate
-group by tiFullPrice,evEventDate,shcode,tilcode,tiMailingList,tiStatus,tipricetype,gogguidenumber
-
--- This query generates the data for the payments table
-select rcbcode paymentid,ptdescr type, rcbshiftdate trandate, rcbpayamount amount, 
-case when rcbcachinout = 1 then 'Refund' else 'Receipt' end mode,
-rcbtransactnum lastTransactNum, rccCreditNum lastCardNum, dbo.asc_xmlgetattribute('card_name',rccparamsdata) lastCardName
-from
-RecieptBase 
-inner join paytype on rcbPayType = ptcode
-left outer join recieptcredit on rcccode = rcbcode
-where rcbcode in (select paymentid from gettysburgstagingday..tickets)
---group by cltcode,ptdescr,rcbshiftdate, rcbcachinout
-
-
-select min(evcode) id,evshow activityid,'True' sundayavail, 'True' mondayavail, 'True' tuesdayavail, 'True' wednesdayavail, 'True' thursdayavail,
-'True' fridayavail, 'True' saturdayavail,
-min(eveventdate) startdate,max(eveventdate) enddate, 
-convert(varchar(5),eveventdate,8) starttime,convert(varchar(5),dateadd(n,shlongminutes,eveventdate),8) finishtime
-from events inner join shows on evshow = shcode
-group by evshow,convert(varchar(5),eveventdate,8),convert(varchar(5),dateadd(n,shlongminutes,eveventdate),8)
-
-*/
 IF EXISTS (SELECT * FROM gettysburgstagingday.INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'activitypriceschedule')
 	drop table gettysburgstagingday..activitypriceschedule
 select min(evcode) activityscheduleid,pctcode pricetypeid,min(pdcalculatedprice) price into gettysburgstagingday..activitypriceschedule
@@ -177,7 +157,7 @@ IF EXISTS (SELECT * FROM gettysburgstagingday.INFORMATION_SCHEMA.TABLES WHERE TA
 drop table gettysburgstagingday..users
 
 
-select user_name + '@gettysburgfoundation.com.cofc' username, first_name, last_name, cltemail + '.test' email,pecode externalid, last_name + '.cofc.test' communityNickname, 
+select user_name + @emailsuffix username, first_name, last_name, cltemail + '.test' email,pecode externalid, last_name + '.cofc.test' communityNickname, 
 'America/Los_Angeles' TimeZoneSidKey, 'en_US' LocaleSidKey, 'ISO-8859-1' EmailEncodingKey, 'en_US' LanguageLocaleKey, last_name + '.cofc.test' Alias, '00e61000000RCxM' ProfileId
 into gettysburgstagingday..users
 from SugarGettysburg..users u 
@@ -188,7 +168,7 @@ where pecode in (select guideid - 1000 from gettysburgstagingday..tickets)
 
 
 insert into gettysburgstagingday..users (username,first_name, last_name, email,externalid,communityNickname, TimeZoneSidKey, LocaleSidKey, EmailEncodingKey, LanguageLocaleKey, Alias, ProfileId)
-select replace(tildescr,' ','_') + '@gettysburgfoundation.com.cofc','',replace(tildescr,' ','_'),replace(tildescr,' ','_') + '@gettysburgfoundation.com.cofc',tilcode externalid,
+select replace(tildescr,' ','_') + @emailsuffix,'',replace(tildescr,' ','_'),replace(tildescr,' ','_') + @emailsuffix,tilcode externalid,
 replace(tildescr,' ','_') + '.cofc.test', 'America/Los_Angeles', 'en_US', 'ISO-8859-1', 'en_US', replace(tildescr,' ','_') + '.cofc.test', '00e61000000RCxM'
 from till where tilcode in
 (select distinct tilcode from tickets 
@@ -198,17 +178,6 @@ inner join shifts on tishift = sfcode and sfActionType = 0
 inner join till on sftill = tilCode
 left outer join clients on timailinglist = cltcode
 where eveventdate between @startdate and @enddate)
-
-IF EXISTS (SELECT * FROM gettysburgstagingday.INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'activityschedule')
-  drop table gettysburgstagingday..activityschedule
-
-select min(evcode) id,evshow activityid,'True' sundayavail, 'True' mondayavail, 'True' tuesdayavail, 'True' wednesdayavail, 'True' thursdayavail,
-'True' fridayavail, 'True' saturdayavail,
-min(eveventdate) startdate,max(eveventdate) enddate, 
-convert(varchar(5),eveventdate,8) starttime,convert(varchar(5),dateadd(n,shlongminutes,eveventdate),8) finishtime into gettysburgstagingday..activityschedule
-from events inner join shows on evshow = shcode
-where eveventdate between @startdate and @enddate
-group by evshow,convert(varchar(5),eveventdate,8),convert(varchar(5),dateadd(n,shlongminutes,eveventdate),8)
 
 IF EXISTS (SELECT * FROM gettysburgstagingday.INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'activitypriceschedule')
 drop table gettysburgstagingday..activitypriceschedule
