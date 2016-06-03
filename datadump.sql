@@ -119,16 +119,19 @@ go
 
 -- This query generates the data for the users table
 
-select user_name + '@gettysburgfoundation' username,first_name, last_name, cltemail email,pecode + 1000 externalid into gettysburgstaging..users
+select user_name + '@gettysburgfoundation.com.cofc' username, first_name, last_name, cltemail + '.test' email,pecode externalid, last_name + '.cofc.test' communityNickname, 
+'America/Los_Angeles' TimeZoneSidKey, 'en_US' LocaleSidKey, 'ISO-8859-1' EmailEncodingKey, 'en_US' LanguageLocaleKey, last_name + '.cofc.test' Alias, '00e61000000RCxM' ProfileId 
+into gettysburgstaging..users
 from SugarGettysburg..users u 
 inner join pegettysburg2..ASC_SoapSyncCrossReference on u.id = sugarid and sugarmodule = 'Users'
 inner join pegettysburg2..Guiders on gdrCode = pecode
 INNER JOIN pegettysburg2..Clients ON gdrContactNoInRelTable = cltCode
 where pecode in (select guideid -1000 guideid from GettysburgStaging..tickets)
 
-insert into gettysburgstaging..users (username,first_name, last_name, email,externalid)
-
-select replace(tildescr,' ','_') + 'peuser@gettysburgfoundation','',replace(tildescr,' ','_'),'',tilcode externalid from till where tilcode in
+insert into gettysburgstagingday..users (username,first_name, last_name, email,externalid,communityNickname, TimeZoneSidKey, LocaleSidKey, EmailEncodingKey, LanguageLocaleKey, Alias, ProfileId)
+select replace(tildescr,' ','_') + '@gettysburgfoundation.com.cofc','',replace(tildescr,' ','_'),replace(tildescr,' ','_') + '@gettysburgfoundation.com.cofc',tilcode externalid,
+replace(tildescr,' ','_') + '.cofc.test', 'America/Los_Angeles', 'en_US', 'ISO-8859-1', 'en_US', replace(tildescr,' ','_') + '.cofc.test', '00e61000000RCxM'
+from till where tilcode in
 (select distinct tilcode from tickets 
 inner join events on tievent = evcode
 inner join shows on evshow = shcode
